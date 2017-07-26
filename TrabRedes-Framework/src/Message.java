@@ -16,6 +16,7 @@ public class Message implements Serializable{
 	private int type;
 	private Date senderDate;
 	private Date serverDate;
+	private String fileName;
 	
 	private Client receiver;
 	private Client sender;
@@ -40,6 +41,7 @@ public class Message implements Serializable{
 		this.receiver = null;
 		this.update = update;
 		this.users = new ArrayList<Client>();
+		this.fileName = "";
 	}
 	
 	public Message(ArrayList<Client> users, int type) {
@@ -52,6 +54,7 @@ public class Message implements Serializable{
 		this.receiver = null;
 		this.update = null;
 		this.users = users;
+		this.fileName = "";
 	}
 	
 	public Message(String message, int type, Date serverDate) {
@@ -64,6 +67,7 @@ public class Message implements Serializable{
 		this.receiver = null;
 		this.update = null;
 		this.users = new ArrayList<Client>();
+		this.fileName = "";
 	}
 	
 	public Message(String message, int type, Date senderDate, Client sender) {
@@ -76,6 +80,7 @@ public class Message implements Serializable{
 		this.receiver = null;
 		this.update = null;
 		this.users = new ArrayList<Client>();
+		this.fileName = "";
 	}
 	
 	public Message(String message, int type, Date senderDate, Client sender, Client receiver) {
@@ -88,6 +93,33 @@ public class Message implements Serializable{
 		this.receiver = receiver;
 		this.update = null;
 		this.users = new ArrayList<Client>();
+		this.fileName = "";
+	}
+	
+	public Message(int type, Date senderDate, Client sender, String fileName) {
+		super();
+		this.message = "";
+		this.type = type;
+		this.senderDate = senderDate;
+		this.serverDate = null;
+		this.sender = sender;
+		this.receiver = null;
+		this.update = null;
+		this.users = new ArrayList<Client>();
+		this.fileName = fileName;
+	}
+	
+	public Message(int type, Date senderDate, Client sender, Client receiver, String fileName) {
+		super();
+		this.message = "";
+		this.type = type;
+		this.senderDate = senderDate;
+		this.serverDate = null;
+		this.sender = sender;
+		this.receiver = receiver;
+		this.update = null;
+		this.users = new ArrayList<Client>();
+		this.fileName = fileName;
 	}
 
 	public ArrayList<Client> getUsers() {

@@ -10,6 +10,7 @@ public class ThreadClient extends Thread{
 	private Client client;
 	private ObjectInputStream input;
 	private ObjectOutputStream output;
+	
 	private boolean stopFlag;
 	private Socket socket;
 	

@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class ThreadFile extends Thread{
+public class ClientThreadFile extends Thread{
 	private FileOutputStream fos;
 	private FileInputStream fis;
 	private BufferedOutputStream bos;
@@ -21,8 +21,19 @@ public class ThreadFile extends Thread{
 	public final static int FILE_SIZE = 6022386; // file size temporary hard coded
     											 // should bigger than the file to be downloaded
 	
-	public ThreadFile(Socket socket){
+	public final static int TYPE_RECEIVE = 1;
+	public final static int TYPE_SEND = 2;
+	private int type;
+	private String sendFilePath;
+	private String receiveFilePath;
+	private Message message;
+	
+	public ClientThreadFile(Socket socket){
 		this.socket = socket;
+		this.type = 0;
+		this.sendFilePath = "";
+		this.receiveFilePath = "";
+		this.message = null;
 		
 		this.fos = null;
 		this.fis = null;
@@ -34,9 +45,39 @@ public class ThreadFile extends Thread{
 	
 	public void run() {
 		close();
+		if(this.type == TYPE_SEND) {
+			sendFile();
+		}
+		else if(this.type == TYPE_RECEIVE) {
+			receiveFile();
+			
+			if(message.hasReceiver()) {
+				MainClient.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") TO " + message.getReceiver().getName() + "(ID: " + message.getReceiver().getId() + ") >> Send a file: " + message.getFileName() + "\n");
+			}
+			else if(message.hasSender()) {
+				MainClient.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") >> Send a file: " + message.getFileName() + "\n");
+			}
+			else {
+				MainClient.jtaChat.append("SERVER ["+ message.getFormattedServerDate() +"] => Send a file: " + message.getMessage() + "\n");
+			}
+		}
 	}
 	
-	public void sendFile(String sendFilePath){
+	public void startSendFile(String sendFilePath, Message message) {
+		this.type = TYPE_SEND;
+		this.sendFilePath = sendFilePath;
+		this.message = message;
+		this.start();
+	}
+	
+	public void startReceiveFile(String receiveFilePath, Message message) {
+		this.type = TYPE_RECEIVE;
+		this.receiveFilePath = receiveFilePath;
+		this.message = message;
+		this.start();
+	}
+	
+	public void sendFile(){
 		File myFile = new File(sendFilePath);
         byte [] mybytearray  = new byte [(int)myFile.length()];
         
@@ -55,7 +96,7 @@ public class ThreadFile extends Thread{
         
 	}
 	
-	public void receiveFile(String receiveFilePath) {
+	public void receiveFile() {
 		byte [] mybytearray  = new byte [FILE_SIZE];
 		
 		try {

@@ -5,14 +5,14 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class ThreadClient extends Thread{
+public class ServerThreadClient extends Thread{
 	Client client;
 	private ObjectInputStream input;
 	private ObjectOutputStream output;
 	private boolean stopFlag;
 	private Socket socket;
 	
-	public ThreadClient(Socket socket) {
+	public ServerThreadClient(Socket socket) {
 		super();
 		this.socket = socket;
 		this.stopFlag = false;
@@ -64,14 +64,14 @@ public class ThreadClient extends Thread{
 					
 					//TODO
 					ArrayList<Client> clients = new ArrayList<Client>();
-					for(ThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
 						clients.add(tc.getClient());
 					}
 					
 					Message updateUsers = new Message(clients, Message.TYPE_UPDATEUSERS);
 					
 					//TODO
-					for(ThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
 						tc.sendMessage(msgConnect);
 						tc.sendMessage(updateUsers);
 					}
@@ -84,14 +84,14 @@ public class ThreadClient extends Thread{
 					
 					//TODO
 					ArrayList<Client> clients = new ArrayList<Client>();
-					for(ThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
 						clients.add(tc.getClient());
 					}
 					
 					Message updateUsers = new Message(clients, Message.TYPE_UPDATEUSERS);
 					
 					//TODO
-					for(ThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
 						tc.sendMessage(msg);
 						tc.sendMessage(updateUsers);
 					}
@@ -109,7 +109,7 @@ public class ThreadClient extends Thread{
 				if(message.hasReceiver()) {
 					MainServer.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") TO " + message.getReceiver().getName() + "(ID: " + message.getReceiver().getId() + ") >> " + message.getMessage() + "\n");
 					
-					for(ThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
 						if(tc.getClient().getId() == message.getReceiver().getId() || tc.getClient().getId() == message.getSender().getId()) {
 							tc.sendMessage(message);
 						}
@@ -118,12 +118,23 @@ public class ThreadClient extends Thread{
 				else {
 					MainServer.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") >> " + message.getMessage() + "\n");
 					
-					for(ThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
 						tc.sendMessage(message);
 					}
 				}
 				
 				
+			}
+			else if(message.getType() == Message.TYPE_FILE) {
+				message.setServerDate(new Date());
+				String oldFileName = message.getFileName();
+				message.setFileName(message.getSender().getName() + "-" + oldFileName);
+				
+				MainServer.messageHistoric.add(message);
+				
+				//Downaload File
+				ServerThreadFile tf = new ServerThreadFile(this.getSocket());
+				tf.startReceiveFile(MainServer.SERVER_STORAGE_PATH + message.getFileName(), message);
 			}
 			
 			
@@ -150,13 +161,13 @@ public class ThreadClient extends Thread{
 		
 		//TODO
 		ArrayList<Client> clients = new ArrayList<Client>();
-		for(ThreadClient tc: MainServer.getConnectedThreads()) {
+		for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
 			clients.add(tc.getClient());
 		}
 		
 		Message updateUsers = new Message(clients, Message.TYPE_UPDATEUSERS);
 		
-		for(ThreadClient tc: MainServer.getConnectedThreads()) {
+		for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
 			tc.sendMessage(msg);
 			tc.sendMessage(updateUsers);
 		}

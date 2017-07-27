@@ -3,10 +3,12 @@ import java.awt.Container;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -36,11 +38,13 @@ public class MainClient extends JFrame{
 	
 	static Container C;
 	
-	private ThreadClient client;
+	private ClientThreadClient client;
 	
 	private static DefaultTableModel dtmUsers;
 	private static JTable jtTableUsers;
 	public static ArrayList<Client> connectedClients = new ArrayList<Client>();
+	
+	public static final String CLIENT_STORAGE_PATH = "C:/Users/Mineradora03/Desktop/clientStorage/";
 	
 	public MainClient() {
 		super("Client");
@@ -188,11 +192,19 @@ public class MainClient extends JFrame{
 		};
 		JScrollPane jspUsers = new JScrollPane(jtTableUsers);
 		
-		jspUsers.setBounds(615, 90, 175, 475);
+		jspUsers.setBounds(615, 90, 175, 435);
 		C.add(jspUsers);
 		
 		
-		
+		JButton jbSendFile = new JButton("Send File");
+		jbSendFile.setBounds(615, 530, 175, 35);
+		jbSendFile.addActionListener(new ActionListener() {	
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				sendActionFile();
+			}
+		});
+		C.add(jbSendFile);
 		
 		
 		
@@ -213,11 +225,19 @@ public class MainClient extends JFrame{
 		}
 	}
 	
+	public void sendActionFile() {
+		//TODO
+		JFileChooser jc = new JFileChooser();
+		int returnValue = jc.showOpenDialog(null);
+		
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+        	File selectedFile = jc.getSelectedFile();
+        	
+        }
+	}
+	
 	public void sendAction() {
 		if(!jtfMessageBox.getText().isEmpty()) {
-			
-			
-			
 			int selectedUsers[] = jtTableUsers.getSelectedRows();
 			boolean himself = false;
 			
@@ -256,7 +276,7 @@ public class MainClient extends JFrame{
 			int port = Integer.parseInt(jtfPort.getText());
 			String ip = jtfIp.getText();
 			String name = jtfName.getText();
-			client = new ThreadClient(ip, port, name);
+			client = new ClientThreadClient(ip, port, name);
 		}
 		
 		if(client.getSocket() == null || client.getSocket().isClosed()) {

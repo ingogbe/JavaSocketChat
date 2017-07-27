@@ -5,7 +5,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Date;
 
-public class ThreadClient extends Thread{
+public class ClientThreadClient extends Thread{
 	
 	private Client client;
 	private ObjectInputStream input;
@@ -18,7 +18,7 @@ public class ThreadClient extends Thread{
 	private int port;
 	private String clientName;
 
-	public ThreadClient(String hostAdress, int port, String clientName) {
+	public ClientThreadClient(String hostAdress, int port, String clientName) {
 		super();
 		this.stopFlag = false;
 		this.hostAdress = hostAdress;
@@ -84,7 +84,7 @@ public class ThreadClient extends Thread{
 			else if(message.getType() == Message.TYPE_UPDATEUSERS) {
 				MainClient.updateUserTable(message.getUsers());
 			}
-			else {
+			else if(message.getType() == Message.TYPE_PLAINTEXT){
 				//TODO: Mostrar mensagem no chat
 				if(message.hasReceiver()) {
 					MainClient.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") TO " + message.getReceiver().getName() + "(ID: " + message.getReceiver().getId() + ") >> " + message.getMessage() + "\n");
@@ -96,6 +96,11 @@ public class ThreadClient extends Thread{
 					MainClient.jtaChat.append("SERVER ["+ message.getFormattedServerDate() +"] => " + message.getMessage() + "\n");
 				}
 				
+			}
+			else if(message.getType() == Message.TYPE_FILE){
+				//Downaload File
+				ClientThreadFile tf = new ClientThreadFile(this.getSocket());
+				tf.startReceiveFile(MainClient.CLIENT_STORAGE_PATH + message.getFileName(), message);
 			}
 		} catch (SocketException e) {
 			//Fechou

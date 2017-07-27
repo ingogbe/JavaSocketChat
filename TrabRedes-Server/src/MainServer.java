@@ -22,8 +22,9 @@ public class MainServer extends JFrame{
 	private static final long serialVersionUID = 1L;
 
 	public static final int PORT = 12345;
+	public static final String SERVER_STORAGE_PATH = "C:/Users/Mineradora03/Desktop/serverStorage/";
 
-	private static ArrayList<ThreadClient> connectedThreads = new ArrayList<ThreadClient>();
+	private static ArrayList<ServerThreadClient> connectedThreads = new ArrayList<ServerThreadClient>();
 	public static ArrayList<Message> messageHistoric = new ArrayList<Message>();
 	private static int clientID;
 	
@@ -129,7 +130,7 @@ public class MainServer extends JFrame{
 					while(true) {
 			        	Socket socket = servidor.accept();
 			        	
-			        	ThreadClient tc = new ThreadClient(socket);
+			        	ServerThreadClient tc = new ServerThreadClient(socket);
 			        	tc.start();
 			        	connectedThreads.add(tc);
 			        } 
@@ -145,11 +146,11 @@ public class MainServer extends JFrame{
 		}).start();
 	}
 
-	public static ArrayList<ThreadClient> getConnectedThreads() {
+	public static ArrayList<ServerThreadClient> getConnectedThreads() {
 		return connectedThreads;
 	}
 
-	public void setConnectedThreads(ArrayList<ThreadClient> connectedThreads) {
+	public void setConnectedThreads(ArrayList<ServerThreadClient> connectedThreads) {
 		MainServer.connectedThreads = connectedThreads;
 	}
 

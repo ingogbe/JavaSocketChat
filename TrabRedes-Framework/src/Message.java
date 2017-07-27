@@ -198,6 +198,15 @@ public class Message implements Serializable{
 	public boolean hasReceiver() {
 		return this.receiver != null;
 	}
+
+	public String getFileName() {
+		return fileName;
+	}
+
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+	
 	
 	
 	

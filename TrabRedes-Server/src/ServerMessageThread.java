@@ -1,28 +1,35 @@
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class ServerThreadClient extends Thread{
+public class ServerMessageThread extends Thread{
 	Client client;
 	private ObjectInputStream input;
 	private ObjectOutputStream output;
+	private InputStream is;
+	private OutputStream os;
+	
 	private boolean stopFlag;
 	private Socket socket;
 	
-	public ServerThreadClient(Socket socket) {
+	public ServerMessageThread(Socket socket) {
 		super();
 		this.socket = socket;
 		this.stopFlag = false;
 		this.client = new Client();
 		
 		try {
-			this.output = new ObjectOutputStream(this.socket.getOutputStream());
-			this.input = new ObjectInputStream(this.socket.getInputStream());
+			this.is = this.socket.getInputStream();
+			this.os = this.socket.getOutputStream();
+			
+			this.output = new ObjectOutputStream(this.os);
+			this.input = new ObjectInputStream(this.is);
 		} catch (IOException e) {
-			//TODO Tratar catch
 			e.printStackTrace();
 		}
 	}
@@ -62,16 +69,14 @@ public class ServerThreadClient extends Thread{
 					MainServer.jtaChat.append("[" + msgConnect.getFormattedServerDate() + "] " + msgConnect.getMessage() + "!\n");
 					MainServer.messageHistoric.add(msgConnect);
 					
-					//TODO
 					ArrayList<Client> clients = new ArrayList<Client>();
-					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerMessageThread tc: MainServer.getConnectedThreads()) {
 						clients.add(tc.getClient());
 					}
 					
 					Message updateUsers = new Message(clients, Message.TYPE_UPDATEUSERS);
 					
-					//TODO
-					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerMessageThread tc: MainServer.getConnectedThreads()) {
 						tc.sendMessage(msgConnect);
 						tc.sendMessage(updateUsers);
 					}
@@ -82,24 +87,19 @@ public class ServerThreadClient extends Thread{
 					MainServer.jtaChat.append("[" + msg.getFormattedServerDate() + "] " + msg.getMessage() + "\n");
 					MainServer.messageHistoric.add(msg);
 					
-					//TODO
 					ArrayList<Client> clients = new ArrayList<Client>();
-					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerMessageThread tc: MainServer.getConnectedThreads()) {
 						clients.add(tc.getClient());
 					}
 					
 					Message updateUsers = new Message(clients, Message.TYPE_UPDATEUSERS);
 					
-					//TODO
-					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerMessageThread tc: MainServer.getConnectedThreads()) {
 						tc.sendMessage(msg);
 						tc.sendMessage(updateUsers);
 					}
 					
 				}
-				
-				
-				
 			}
 			else if(message.getType() == Message.TYPE_PLAINTEXT) {
 				message.setServerDate(new Date());
@@ -109,7 +109,7 @@ public class ServerThreadClient extends Thread{
 				if(message.hasReceiver()) {
 					MainServer.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") TO " + message.getReceiver().getName() + "(ID: " + message.getReceiver().getId() + ") >> " + message.getMessage() + "\n");
 					
-					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerMessageThread tc: MainServer.getConnectedThreads()) {
 						if(tc.getClient().getId() == message.getReceiver().getId() || tc.getClient().getId() == message.getSender().getId()) {
 							tc.sendMessage(message);
 						}
@@ -118,7 +118,7 @@ public class ServerThreadClient extends Thread{
 				else {
 					MainServer.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") >> " + message.getMessage() + "\n");
 					
-					for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
+					for(ServerMessageThread tc: MainServer.getConnectedThreads()) {
 						tc.sendMessage(message);
 					}
 				}
@@ -126,15 +126,7 @@ public class ServerThreadClient extends Thread{
 				
 			}
 			else if(message.getType() == Message.TYPE_FILE) {
-				message.setServerDate(new Date());
-				String oldFileName = message.getFileName();
-				message.setFileName(message.getSender().getName() + "-" + oldFileName);
 				
-				MainServer.messageHistoric.add(message);
-				
-				//Downaload File
-				ServerThreadFile tf = new ServerThreadFile(this.getSocket());
-				tf.startReceiveFile(MainServer.SERVER_STORAGE_PATH + message.getFileName(), message);
 			}
 			
 			
@@ -149,7 +141,6 @@ public class ServerThreadClient extends Thread{
 			input.close();
 			socket.close();
 		} catch (IOException e2) {
-			//TODO Tratar catch
 			e2.printStackTrace();
 		}
 		
@@ -159,15 +150,14 @@ public class ServerThreadClient extends Thread{
 		MainServer.jtaChat.append("[" + msg.getFormattedServerDate() + "] " + msg.getMessage() + "!\n");
 		MainServer.messageHistoric.add(msg);
 		
-		//TODO
 		ArrayList<Client> clients = new ArrayList<Client>();
-		for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
+		for(ServerMessageThread tc: MainServer.getConnectedThreads()) {
 			clients.add(tc.getClient());
 		}
 		
 		Message updateUsers = new Message(clients, Message.TYPE_UPDATEUSERS);
 		
-		for(ServerThreadClient tc: MainServer.getConnectedThreads()) {
+		for(ServerMessageThread tc: MainServer.getConnectedThreads()) {
 			tc.sendMessage(msg);
 			tc.sendMessage(updateUsers);
 		}
@@ -178,7 +168,6 @@ public class ServerThreadClient extends Thread{
 			output.flush();
 			output.writeObject(message);
 		} catch (IOException e) {
-			//TODO Tratar catch
 			e.printStackTrace();
 		}
 	}
@@ -189,10 +178,8 @@ public class ServerThreadClient extends Thread{
 		try {
 			message = (Message) input.readObject();
 		} catch (IOException e) {	
-			//TODO Tratar catch
 			disconnect();
 		} catch (ClassNotFoundException e) {
-			//TODO Tratar catch
 			e.printStackTrace();
 		}
 		
@@ -237,6 +224,22 @@ public class ServerThreadClient extends Thread{
 
 	public void setSocket(Socket socket) {
 		this.socket = socket;
+	}
+
+	public InputStream getIs() {
+		return is;
+	}
+
+	public void setIs(InputStream is) {
+		this.is = is;
+	}
+
+	public OutputStream getOs() {
+		return os;
+	}
+
+	public void setOs(OutputStream os) {
+		this.os = os;
 	}
 	
 	

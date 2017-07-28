@@ -21,14 +21,16 @@ import javax.swing.text.DefaultCaret;
 public class MainServer extends JFrame{
 	private static final long serialVersionUID = 1L;
 
-	public static final int PORT = 12345;
-	public static final String SERVER_STORAGE_PATH = "C:/Users/Mineradora03/Desktop/serverStorage/";
+	public static final int MESSAGE_PORT = 10001;
+	public static final int FILE_PORT = 10002;
+	public static final String SERVER_STORAGE = "C:/Users/Mineradora03/Desktop/serverStorage/";
 
-	private static ArrayList<ServerThreadClient> connectedThreads = new ArrayList<ServerThreadClient>();
+	private static ArrayList<ServerMessageThread> connectedThreads = new ArrayList<ServerMessageThread>();
 	public static ArrayList<Message> messageHistoric = new ArrayList<Message>();
 	private static int clientID;
 	
-	private static ServerSocket servidor;
+	private static ServerSocket messageServer;
+	private static ServerSocket fileServer;
 	
 	private Container C;
 	private JMenuBar jmBarraMenu;
@@ -124,13 +126,13 @@ public class MainServer extends JFrame{
 			@Override
 			public void run() {
 				try {
-					servidor = new ServerSocket(PORT);
-					jtaChat.append("Servidor criado e ouvindo. Ip: "+ InetAddress.getLocalHost() +". Port: " + PORT + "\n");
+					messageServer = new ServerSocket(MESSAGE_PORT);
+					jtaChat.append("Message server created and listening. Ip: "+ InetAddress.getLocalHost() +". Port: " + MESSAGE_PORT + "\n");
 					
 					while(true) {
-			        	Socket socket = servidor.accept();
+			        	Socket socket = messageServer.accept();
 			        	
-			        	ServerThreadClient tc = new ServerThreadClient(socket);
+			        	ServerMessageThread tc = new ServerMessageThread(socket);
 			        	tc.start();
 			        	connectedThreads.add(tc);
 			        } 
@@ -139,27 +141,42 @@ public class MainServer extends JFrame{
 					jtaChat.append("Erro: " + e.getMessage() + "\n");
 					e.printStackTrace();
 				}
-				finally {
-			    	//Nada a fazer
-			    }
+			}
+		}).start();
+		
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					fileServer = new ServerSocket(FILE_PORT);
+					jtaChat.append("File server created and listening. Ip: "+ InetAddress.getLocalHost() +". Port: " + FILE_PORT + "\n");
+					
+					while(true) {
+			        	Socket s = fileServer.accept();
+			        } 
+					
+				} catch(Exception e) {
+					jtaChat.append("Erro: " + e.getMessage() + "\n");
+					e.printStackTrace();
+				}
 			}
 		}).start();
 	}
 
-	public static ArrayList<ServerThreadClient> getConnectedThreads() {
+	public static ArrayList<ServerMessageThread> getConnectedThreads() {
 		return connectedThreads;
 	}
 
-	public void setConnectedThreads(ArrayList<ServerThreadClient> connectedThreads) {
+	public void setConnectedThreads(ArrayList<ServerMessageThread> connectedThreads) {
 		MainServer.connectedThreads = connectedThreads;
 	}
 
-	public ServerSocket getServidor() {
-		return servidor;
+	public ServerSocket getMessageServer() {
+		return messageServer;
 	}
 
-	public void setServidor(ServerSocket servidor) {
-		MainServer.servidor = servidor;
+	public void setMessageServer(ServerSocket servidor) {
+		MainServer.messageServer = servidor;
 	}
 
 	

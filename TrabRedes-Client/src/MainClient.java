@@ -38,13 +38,11 @@ public class MainClient extends JFrame{
 	
 	static Container C;
 	
-	private ClientThreadClient client;
+	public static ClientThread client;
 	
 	private static DefaultTableModel dtmUsers;
 	private static JTable jtTableUsers;
 	public static ArrayList<Client> connectedClients = new ArrayList<Client>();
-	
-	public static final String CLIENT_STORAGE_PATH = "C:/Users/Mineradora03/Desktop/clientStorage/";
 	
 	public MainClient() {
 		super("Client");
@@ -232,7 +230,9 @@ public class MainClient extends JFrame{
 		
         if (returnValue == JFileChooser.APPROVE_OPTION) {
         	File selectedFile = jc.getSelectedFile();
-        	
+        			
+        	Message message = new Message(Message.TYPE_FILE, new Date(), client.getClient(), selectedFile);
+        	client.sendFile(message);
         }
 	}
 	
@@ -276,15 +276,21 @@ public class MainClient extends JFrame{
 			int port = Integer.parseInt(jtfPort.getText());
 			String ip = jtfIp.getText();
 			String name = jtfName.getText();
-			client = new ClientThreadClient(ip, port, name);
+			client = new ClientThread(ip, port, name);
 		}
 		
 		if(client.getSocket() == null || client.getSocket().isClosed()) {
 			client.connect();
+			jtfIp.setEditable(false);
+			jtfName.setEditable(false);
+			jtfPort.setEditable(false);
 			jbConnect.setText("Disconnect");
 		}
 		else {
 			client.disconnect();
+			jtfIp.setEditable(true);
+			jtfName.setEditable(true);
+			jtfPort.setEditable(true);
 			client = null;
 			jbConnect.setText("Connect");
 		}

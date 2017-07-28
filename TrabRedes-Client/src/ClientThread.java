@@ -1,15 +1,19 @@
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Date;
 
-public class ClientThreadClient extends Thread{
+public class ClientThread extends Thread{
 	
 	private Client client;
 	private ObjectInputStream input;
 	private ObjectOutputStream output;
+	private InputStream is;
+	private OutputStream os;
 	
 	private boolean stopFlag;
 	private Socket socket;
@@ -18,7 +22,7 @@ public class ClientThreadClient extends Thread{
 	private int port;
 	private String clientName;
 
-	public ClientThreadClient(String hostAdress, int port, String clientName) {
+	public ClientThread(String hostAdress, int port, String clientName) {
 		super();
 		this.stopFlag = false;
 		this.hostAdress = hostAdress;
@@ -32,8 +36,12 @@ public class ClientThreadClient extends Thread{
 			this.socket = new Socket(hostAdress, port);
 			this.client = new Client(this.clientName);
 			
-			this.output = new ObjectOutputStream(this.socket.getOutputStream());
-			this.input = new ObjectInputStream(this.socket.getInputStream());
+			this.is = this.socket.getInputStream();
+			this.os = this.socket.getOutputStream();
+			
+			this.output = new ObjectOutputStream(this.os);
+			this.input = new ObjectInputStream(this.is);
+			
 			
 			MainClient.jtaChat.setText("");
 			
@@ -60,6 +68,10 @@ public class ClientThreadClient extends Thread{
 			//TODO Tratar catch
 			e.printStackTrace();
 		}
+	}
+	
+	public void sendFile(Message message) {
+		
 	}
 	
 	public void sendMessage(Message message) {
@@ -98,9 +110,7 @@ public class ClientThreadClient extends Thread{
 				
 			}
 			else if(message.getType() == Message.TYPE_FILE){
-				//Downaload File
-				ClientThreadFile tf = new ClientThreadFile(this.getSocket());
-				tf.startReceiveFile(MainClient.CLIENT_STORAGE_PATH + message.getFileName(), message);
+				
 			}
 		} catch (SocketException e) {
 			//Fechou
@@ -190,6 +200,24 @@ public class ClientThreadClient extends Thread{
 	public void setSocket(Socket socket) {
 		this.socket = socket;
 	}
+
+	public InputStream getIs() {
+		return is;
+	}
+
+	public void setIs(InputStream is) {
+		this.is = is;
+	}
+
+	public OutputStream getOs() {
+		return os;
+	}
+
+	public void setOs(OutputStream os) {
+		this.os = os;
+	}
+	
+	
 
 
 	

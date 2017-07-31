@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class FileThread extends Thread{
+public class FileManager	{
 	public final static int FILE_SIZE = 6022386; // file size temporary hard coded should bigger than the file to be downloaded
 	public final static int TYPE_RECEIVE = 1;
 	public final static int TYPE_SEND = 2;
@@ -19,36 +19,15 @@ public class FileThread extends Thread{
 	
 	private InputStream is;
 	private OutputStream os;
-	private Socket socket;
 	
-	public FileThread(Socket socket){
+	public FileManager(InputStream is, OutputStream os){
 		this.type = 0;
 		this.receiveFilePath = "";
 		this.sendFilePath = "";
-		this.socket = socket;
 		
-		try {
-			this.is = this.socket.getInputStream();
-			this.os = this.socket.getOutputStream();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		this.is = is;
+		this.os = os;
 		
-	}
-	
-	public void run() {
-		try {
-			if(this.type == TYPE_SEND) {
-				sendFile();
-			}
-			else if(this.type == TYPE_RECEIVE) {
-				receiveFile();
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	/**
@@ -58,7 +37,6 @@ public class FileThread extends Thread{
 	public void startSendFile(String sendFilePath) {
 		this.type = TYPE_SEND;
 		this.sendFilePath = sendFilePath;
-		this.start();
 	}
 	
 	/**
@@ -68,7 +46,6 @@ public class FileThread extends Thread{
 	public void startReceiveFile(String receiveFilePath) {
 		this.type = TYPE_RECEIVE;
 		this.receiveFilePath = receiveFilePath;
-		this.start();
 	}
 	
 	private void sendFile() throws IOException{
@@ -114,4 +91,14 @@ public class FileThread extends Thread{
 		
 		System.out.println("File " + receiveFilePath + " downloaded (" + current + " bytes read)");
 	}
+
+	public int getType() {
+		return type;
+	}
+
+	public void setType(int type) {
+		this.type = type;
+	}
+	
+	
 }

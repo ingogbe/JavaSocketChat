@@ -126,7 +126,8 @@ public class ServerMessageThread extends Thread{
 				
 			}
 			else if(message.getType() == Message.TYPE_FILE) {
-				
+				//TODO Pegar a thread de arquivo do cliente sender e fazer ela reenviar para as pessoas certas
+				//TODO O download qd o sender mando é automatico, reconhecer arquivo enviado pela ID e filename
 			}
 			
 			

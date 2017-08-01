@@ -1,0 +1,17 @@
+import java.io.IOException;
+
+public class MessageManager {
+	public Message readMessage() {
+		Message message = null;
+	
+		try {
+			message = (Message) ois.readObject();
+		} catch (IOException e) {	
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		return message;
+	}
+}

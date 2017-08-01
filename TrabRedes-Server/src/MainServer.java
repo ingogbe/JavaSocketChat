@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,11 +22,10 @@ import javax.swing.text.DefaultCaret;
 public class MainServer extends JFrame{
 	private static final long serialVersionUID = 1L;
 
-	public static final int MESSAGE_PORT = 10001;
-	public static final int FILE_PORT = 10002;
 	public static final String SERVER_STORAGE = "C:/Users/Mineradora03/Desktop/serverStorage/";
 
-	private static ArrayList<ServerMessageThread> connectedThreads = new ArrayList<ServerMessageThread>();
+	private static ArrayList<ServerMessageThread> connectedMessageThreads = new ArrayList<ServerMessageThread>();
+	
 	public static ArrayList<Message> messageHistoric = new ArrayList<Message>();
 	private static int clientID;
 	
@@ -126,18 +126,17 @@ public class MainServer extends JFrame{
 			@Override
 			public void run() {
 				try {
-					messageServer = new ServerSocket(MESSAGE_PORT);
-					jtaChat.append("Message server created and listening. Ip: "+ InetAddress.getLocalHost() +". Port: " + MESSAGE_PORT + "\n");
+					messageServer = new ServerSocket(ServerConsts.MESSAGE_PORT);
+					jtaChat.append("Message server created and listening. Ip: "+ InetAddress.getLocalHost() +". Port: " + ServerConsts.MESSAGE_PORT + "\n");
 					
 					while(true) {
 			        	Socket socket = messageServer.accept();
 			        	
 			        	ServerMessageThread tc = new ServerMessageThread(socket);
-			        	tc.start();
-			        	connectedThreads.add(tc);
+			        	connectedMessageThreads.add(tc);
 			        } 
 					
-				} catch(Exception e) {
+				} catch(IOException e) {
 					jtaChat.append("Erro: " + e.getMessage() + "\n");
 					e.printStackTrace();
 				}
@@ -148,11 +147,11 @@ public class MainServer extends JFrame{
 			@Override
 			public void run() {
 				try {
-					fileServer = new ServerSocket(FILE_PORT);
-					jtaChat.append("File server created and listening. Ip: "+ InetAddress.getLocalHost() +". Port: " + FILE_PORT + "\n");
+					fileServer = new ServerSocket(ServerConsts.FILE_PORT);
+					jtaChat.append("File server created and listening. Ip: "+ InetAddress.getLocalHost() +". Port: " + ServerConsts.FILE_PORT + "\n");
 					
 					while(true) {
-			        	Socket s = fileServer.accept();
+			        	Socket socket = fileServer.accept();
 			        } 
 					
 				} catch(Exception e) {
@@ -163,12 +162,12 @@ public class MainServer extends JFrame{
 		}).start();
 	}
 
-	public static ArrayList<ServerMessageThread> getConnectedThreads() {
-		return connectedThreads;
+	public static ArrayList<ServerMessageThread> getConnectedMessageThreads() {
+		return connectedMessageThreads;
 	}
 
-	public void setConnectedThreads(ArrayList<ServerMessageThread> connectedThreads) {
-		MainServer.connectedThreads = connectedThreads;
+	public void setConnectedMessageThreads(ArrayList<ServerMessageThread> connectedMessageThreads) {
+		MainServer.connectedMessageThreads = connectedMessageThreads;
 	}
 
 	public ServerSocket getMessageServer() {
@@ -179,6 +178,9 @@ public class MainServer extends JFrame{
 		MainServer.messageServer = servidor;
 	}
 
+
+
+	
 	
 	
 	

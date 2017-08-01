@@ -1,0 +1,175 @@
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.Date;
+
+public class ClientThread extends Thread{
+	
+	private Client client;
+	private MessageManager messageManager;
+	
+	private InputStream is;
+	private OutputStream os;
+	
+	private Socket socket;
+	private boolean running;
+	private String hostAdress;
+	private int port;
+	private String clientName;
+
+	public ClientThread(String hostAdress, int port, String clientName) {
+		super();
+		this.running = false;
+		this.hostAdress = hostAdress;
+		this.port = port;
+		this.clientName = clientName;
+		this.socket = null;
+	}
+	
+	public void connect() {
+		try {
+			this.socket = new Socket(hostAdress, port);
+			this.client = new Client(this.clientName);
+			
+			this.is = this.socket.getInputStream();
+			this.os = this.socket.getOutputStream();
+			
+			this.messageManager = new MessageManager(new ObjectInputStream(this.is), new ObjectOutputStream(this.os));
+			
+			setRunning(true);
+			MainClient.jtaChat.setText("");
+			
+			this.start();
+		} catch (IOException e) {
+			//TODO Tratar catch
+			System.out.println("Erro: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	public void disconnect() {
+		setRunning(false);
+		MainClient.removeUserRows();
+		
+		try {
+			messageManager.close();
+			socket.close();
+			
+			MainClient.jtaChat.setText("");
+			MainClient.jtaChat.append("SERVER [" + new Date() +"] => Disconnected\n");
+		} catch (IOException e) {
+			//TODO Tratar catch
+			e.printStackTrace();
+		}
+	}
+	
+	public void sendFile(Message message) {
+		
+	}
+	
+	public Message readMessage() {
+		Message message = null;
+	
+		message = getMessageManager().readMessage();
+		
+		if(message.getType() == Message.TYPE_UPDATECLIENT) {
+			setClient(message.getUpdate());
+		}
+		else if(message.getType() == Message.TYPE_UPDATEUSERS) {
+			MainClient.updateUserTable(message.getUsers());
+		}
+		else if(message.getType() == Message.TYPE_PLAINTEXT){
+			if(message.hasReceiver()) {
+				MainClient.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") TO " + message.getReceiver().getName() + "(ID: " + message.getReceiver().getId() + ") >> " + message.getMessage() + "\n");
+			}
+			else if(message.hasSender()) {
+				MainClient.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") >> " + message.getMessage() + "\n");
+			}
+			else {
+				MainClient.jtaChat.append("SERVER ["+ message.getFormattedServerDate() +"] => " + message.getMessage() + "\n");
+			}
+			
+		}
+		else if(message.getType() == Message.TYPE_FILE){
+			
+		}
+		
+		return message;
+	}
+
+	public void run() {
+		Message msg = new Message(this.client, Message.TYPE_UPDATECLIENT);
+		getMessageManager().sendMessage(msg);
+		
+		while(isRunning()) {
+			if(!socket.isClosed()) {
+				readMessage();
+			}	
+			else {
+				break;
+			}
+		}
+	}
+
+	public Client getClient() {
+		return client;
+	}
+
+	public void setClient(Client client) {
+		this.client = client;
+	}
+
+	public String getHostAdress() {
+		return hostAdress;
+	}
+
+	public void setHostAdress(String hostAdress) {
+		this.hostAdress = hostAdress;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public Socket getSocket() {
+		return socket;
+	}
+
+	public void setSocket(Socket socket) {
+		this.socket = socket;
+	}
+
+	public MessageManager getMessageManager() {
+		return messageManager;
+	}
+
+	public void setMessageManager(MessageManager messageManager) {
+		this.messageManager = messageManager;
+	}
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	public void setRunning(boolean running) {
+		this.running = running;
+	}
+	
+	
+	
+	
+
+
+	
+	
+	
+
+}

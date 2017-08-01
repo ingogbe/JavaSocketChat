@@ -1,0 +1,114 @@
+import java.io.IOException;
+import java.net.Socket;
+
+public class ServerFileThread extends Thread{
+	private Client client;
+	private FileManager fileManager;
+	private Socket fileSocket;
+	private boolean running;
+	
+	private boolean receiving;
+	private boolean done;
+	private String fileName;
+	
+	private static final String SERVER_FILE_STORAGE = "C:/Users/Mineradora03/Desktop/serverStorage/";
+	
+	public ServerFileThread(Socket socket) {
+		super();
+		this.fileSocket = socket;
+		this.client = null;
+		this.running = true;
+		this.fileManager = null;
+		this.receiving = false;
+		this.done = true;
+		this.fileName = "";
+		
+		this.start();
+	}
+	
+	public void run() {
+		try {
+			setFileManager(new FileManager(getFileSocket().getInputStream(), getFileSocket().getOutputStream()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		Message message = getFileManager().readMessage();
+		
+		if(message.getType() == Message.TYPE_UPDATECLIENT) {
+			setClient(message.getUpdate());
+		}
+		
+		System.out.println(getClient().getId() + " " + getClient().getName());
+		
+		while(isRunning()){
+			
+			if(isReceiving()) {
+				setDone(false);
+				try {
+					getFileManager().receiveFile(SERVER_FILE_STORAGE + client.getId() + "_" + this.fileName);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				setDone(true);
+			}
+		}
+	}
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	public void setRunning(boolean running) {
+		this.running = running;
+	}
+
+	public Client getClient() {
+		return client;
+	}
+
+	public void setClient(Client client) {
+		this.client = client;
+	}
+
+	public Socket getFileSocket() {
+		return fileSocket;
+	}
+
+	public void setFileSocket(Socket fileSocket) {
+		this.fileSocket = fileSocket;
+	}
+
+	public FileManager getFileManager() {
+		return fileManager;
+	}
+
+	public void setFileManager(FileManager fileManager) {
+		this.fileManager = fileManager;
+	}
+
+	public boolean isDone() {
+		return done;
+	}
+
+	public void setDone(boolean done) {
+		this.done = done;
+	}
+
+	public boolean isReceiving() {
+		return receiving;
+	}
+
+	public void setReceiving(boolean receiving) {
+		this.receiving = receiving;
+	}
+	
+	public void startReceiving(String filename) {
+		this.fileName = filename;
+		setReceiving(true);
+	}
+	
+	
+	
+	
+}

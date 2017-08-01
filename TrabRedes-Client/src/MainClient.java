@@ -32,13 +32,13 @@ public class MainClient extends JFrame{
 	private JMenuItem jmiArquivoSair;
 	
 	public static JTextArea jtaChat;
-	JTextField jtfName, jtfIp, jtfPort;
-	JButton jbConnect;
-	JTextField jtfMessageBox;
+	public static JTextField jtfName, jtfIp;
+	public static JButton jbConnect;
+	private JTextField jtfMessageBox;
 	
-	static Container C;
+	private  Container C;
 	
-	public static ClientThread client;
+	public static ClientMessageThread clientThread;
 	
 	private static DefaultTableModel dtmUsers;
 	private static JTable jtTableUsers;
@@ -90,7 +90,7 @@ public class MainClient extends JFrame{
 		jpConfiguration.add(jlName);
 		
 		jtfName = new JTextField();
-		jtfName.setBounds(50, 20, 200, 30);
+		jtfName.setBounds(50, 20, 295, 30);
 		jtfName.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -100,11 +100,11 @@ public class MainClient extends JFrame{
 		jpConfiguration.add(jtfName);
 		
 		JLabel jlIp = new JLabel("IP:");
-		jlIp.setBounds(260, 20, 20, 30);
+		jlIp.setBounds(355, 20, 20, 30);
 		jpConfiguration.add(jlIp);
 		
 		jtfIp = new JTextField();
-		jtfIp.setBounds(280, 20, 250, 30);
+		jtfIp.setBounds(375, 20, 300, 30);
 		jtfIp.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -112,20 +112,6 @@ public class MainClient extends JFrame{
 			}
 		});
 		jpConfiguration.add(jtfIp);
-		
-		JLabel jlPort = new JLabel("Port:");
-		jlPort.setBounds(540, 20, 40, 30);
-		jpConfiguration.add(jlPort);
-		
-		jtfPort = new JTextField();
-		jtfPort.setBounds(575, 20, 100, 30);
-		jtfPort.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				connectAction();
-			}
-		});
-		jpConfiguration.add(jtfPort);
 		
 		jbConnect = new JButton("Connect");
 		jbConnect.setBounds(680, 20, 95, 30);
@@ -160,7 +146,6 @@ public class MainClient extends JFrame{
 		jtfMessageBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//TODO: Send Message
 				sendAction();
 			}
 		});
@@ -171,13 +156,12 @@ public class MainClient extends JFrame{
 		jbSend.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//TODO: Send Message
 				sendAction();
 			}
 		});
 		jpChat.add(jbSend);
 		
-		//TODO: tabela de usuarios logados
+		
 		dtmUsers = new DefaultTableModel();
 		dtmUsers.addColumn("Usuários");
 		
@@ -224,15 +208,17 @@ public class MainClient extends JFrame{
 	}
 	
 	public void sendActionFile() {
-		//TODO
+		
 		JFileChooser jc = new JFileChooser();
 		int returnValue = jc.showOpenDialog(null);
 		
         if (returnValue == JFileChooser.APPROVE_OPTION) {
         	File selectedFile = jc.getSelectedFile();
         			
-        	Message message = new Message(Message.TYPE_FILE, new Date(), client.getClient(), selectedFile);
-        	client.sendFile(message);
+        	Message message = new Message(Message.TYPE_FILE, new Date(), clientThread.getClient(), selectedFile);
+        	clientThread.getMessageManager().sendMessage(message);
+        	clientThread.sendFile(selectedFile);
+        	//TODO
         }
 	}
 	
@@ -243,7 +229,7 @@ public class MainClient extends JFrame{
 			
 			if(selectedUsers.length == 1) {
 				for(int j :selectedUsers) {
-					if(connectedClients.get(j).getId() == client.getClient().getId()) {
+					if(connectedClients.get(j).getId() == clientThread.getClient().getId()) {
 						himself = true;
 						break;
 					}
@@ -251,15 +237,15 @@ public class MainClient extends JFrame{
 			}
 			
 			if(himself || selectedUsers.length == 0 || selectedUsers.length == dtmUsers.getRowCount()) {
-				Message msg = new Message(jtfMessageBox.getText(), Message.TYPE_PLAINTEXT, new Date(), client.getClient());
-				client.sendMessage(msg);
+				Message msg = new Message(jtfMessageBox.getText(), Message.TYPE_PLAINTEXT, new Date(), clientThread.getClient());
+				clientThread.getMessageManager().sendMessage(msg);
 				jtfMessageBox.setText("");
 			}
 			else {
 				for(int j :selectedUsers) {
-					if(connectedClients.get(j).getId() != client.getClient().getId()) {
-						Message msg = new Message(jtfMessageBox.getText(), Message.TYPE_PLAINTEXT, new Date(), client.getClient(), connectedClients.get(j));
-						client.sendMessage(msg);
+					if(connectedClients.get(j).getId() != clientThread.getClient().getId()) {
+						Message msg = new Message(jtfMessageBox.getText(), Message.TYPE_PLAINTEXT, new Date(), clientThread.getClient(), connectedClients.get(j));
+						clientThread.getMessageManager().sendMessage(msg);
 					}
 				}
 				
@@ -271,27 +257,18 @@ public class MainClient extends JFrame{
 	}
 	
 	public void connectAction() {
+		String ip = jtfIp.getText();
+		String name = jtfName.getText();
 		
-		if(client == null) {
-			int port = Integer.parseInt(jtfPort.getText());
-			String ip = jtfIp.getText();
-			String name = jtfName.getText();
-			client = new ClientThread(ip, port, name);
-		}
-		
-		if(client.getSocket() == null || client.getSocket().isClosed()) {
-			client.connect();
-			jtfIp.setEditable(false);
-			jtfName.setEditable(false);
-			jtfPort.setEditable(false);
-			jbConnect.setText("Disconnect");
+		if(clientThread == null) {
+			clientThread = new ClientMessageThread(ip, name);
+			clientThread.connect();
 		}
 		else {
-			client.disconnect();
+			clientThread.disconnect();
 			jtfIp.setEditable(true);
 			jtfName.setEditable(true);
-			jtfPort.setEditable(true);
-			client = null;
+			clientThread = null;
 			jbConnect.setText("Connect");
 		}
 		

@@ -12,7 +12,7 @@ public class ServerMessageThread extends Thread{
 	private boolean running;
 	private Socket messageSocket;
 	
-	public ServerMessageThread(Socket messageSocket) throws IOException {
+	public ServerMessageThread(Socket messageSocket) {
 		super();
 		this.messageSocket = messageSocket;
 		this.running = true;
@@ -124,7 +124,7 @@ public class ServerMessageThread extends Thread{
 				//TODO pega accept do servidor de files e recebe o arquivo X
 				//Renvia mensagem de arquivo para os destinatarios
 				
-				
+				System.out.println("Recebeu mensagem que tem arquivo pra chegar");
 				
 				
 			}

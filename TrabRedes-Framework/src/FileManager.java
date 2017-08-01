@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.Socket;
 
 public class FileManager {
 	public final static int FILE_SIZE = 6022386; // file size temporary hard coded should bigger than the file to be downloaded
@@ -19,15 +18,19 @@ public class FileManager {
 	
 	private InputStream input;
 	private OutputStream output;
+	private BufferedInputStream bis;
+	private BufferedOutputStream bos;
 	
 	public FileManager(InputStream is, OutputStream os){
 		this.type = 0;
 		
 		this.input = is;
 		this.output = os;
+		this.bis = null;
+		this.bos = null;
 	}
 	
-	public void sendMessage(Message message) {
+	public void sendConfig(Message message) {
 		try {
 			ObjectOutputStream oos = new ObjectOutputStream(getOutput());
 			oos.flush();
@@ -37,43 +40,36 @@ public class FileManager {
 		}
 	}
 	
-	public Message readMessage() {
+	public Message readConfig() {
+		
 		Message message = null;
-	
+		
 		try {
 			ObjectInputStream ois = new ObjectInputStream(getInput());
 			message = (Message) ois.readObject();
+			
+			return message;
+			
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 		
-		return message;
+		return null;
 	}
 	
-	public void sendFile(Socket socket, File myFile) throws IOException{
-		
-		FileInputStream fis = null;
-	    BufferedInputStream bis = null;
-	    OutputStream os = null;
+	public void sendFile(File file) throws IOException{
 		
 		System.out.println("Waiting...");
-        try {
-          System.out.println("Accepted connection : " + socket);
-          byte [] mybytearray  = new byte [(int)myFile.length()];
-          fis = new FileInputStream(myFile);
-          bis = new BufferedInputStream(fis);
-          bis.read(mybytearray,0,mybytearray.length);
-          os = socket.getOutputStream();
-          System.out.println("Sending " + myFile.getAbsolutePath() + "(" + mybytearray.length + " bytes)");
-          os.write(mybytearray,0,mybytearray.length);
-          os.flush();
-          System.out.println("Done.");
-        }
-        finally {
-          if (bis != null) bis.close();
-          if (os != null) os.close();
-          if (socket!=null) socket.close();
-        }
+		byte [] mybytearray  = new byte [(int)file.length()];
+		FileInputStream fis = new FileInputStream(file);
+        bis = new BufferedInputStream(fis);
+        bis.read(mybytearray,0,mybytearray.length);
+        System.out.println("Sending " + file.getAbsolutePath() + "(" + mybytearray.length + " bytes)");
+        getOutput().flush();
+        System.out.println("Send (antes do write): " + mybytearray.length );
+        getOutput().write(mybytearray,0,mybytearray.length);
+        getOutput().flush();
+        System.out.println("Done.");
 		
 		/*
 		
@@ -96,38 +92,37 @@ public class FileManager {
         */
 	}
 	
-	public void receiveFile(Socket socket, String receiveFilepath) throws IOException{
-		int bytesRead;
+	public void receiveFile(String receiveFilepath) throws IOException{
+		
+	    System.out.println("Connecting...");
+	    int bytesRead;
 	    int current = 0;
-	    FileOutputStream fos = null;
-	    BufferedOutputStream bos = null;
 		
-		try {
-			System.out.println("Connecting...");
+	    
+		// receive file
+		byte [] mybytearray  = new byte [FILE_SIZE];
+		FileOutputStream fos = new FileOutputStream(receiveFilepath);
+		fos.flush();
+		bos = new BufferedOutputStream(fos);
+		bos.flush();
+		bytesRead = getInput().read(mybytearray,0,mybytearray.length);
 		
-			// receive file
-			byte [] mybytearray  = new byte [FILE_SIZE];
-			InputStream is = socket.getInputStream();
-			fos = new FileOutputStream(receiveFilepath);
-			bos = new BufferedOutputStream(fos);
-			bytesRead = is.read(mybytearray,0,mybytearray.length);
-			current = bytesRead;
+		current = bytesRead;
+		System.out.println("Receive Antes: " + current);
+	
+		do {
+			bytesRead = getInput().read(mybytearray, current, (mybytearray.length-current));
+			if(bytesRead >= 0)
+				current += bytesRead;
+		} while(bytesRead > -1);
 		
-			do {
-				bytesRead = is.read(mybytearray, current, (mybytearray.length-current));
-				if(bytesRead >= 0)
-					current += bytesRead;
-			} while(bytesRead > -1);
 		
-			bos.write(mybytearray, 0 , current);
-			bos.flush();
-			System.out.println("File " + receiveFilepath + " downloaded (" + current + " bytes read)");
-		}
-		finally {
-			if (fos != null) fos.close();
-			if (bos != null) bos.close();
-			if (socket != null) socket.close();
-		}
+		System.out.println("Receive Depois: " + current);
+		
+		bos.flush();
+		bos.write(mybytearray, 0 , current);
+		bos.flush();
+		System.out.println("File " + receiveFilepath + " downloaded (" + current + " bytes read)");
 		
 		/*
 		byte [] mybytearray  = new byte [FILE_SIZE];
@@ -160,6 +155,24 @@ public class FileManager {
 		*/
 		
 	}
+	
+	public String getFileExtension(File file) {
+	    String name = file.getName();
+	    try {
+	        return name.substring(name.lastIndexOf(".") + 1);
+	    } catch (Exception e) {
+	        return "";
+	    }
+	}
+	
+	public void close() {
+		try {
+			getInput().close();
+			getOutput().close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public int getType() {
 		return type;
@@ -184,6 +197,7 @@ public class FileManager {
 	public void setOutput(OutputStream output) {
 		this.output = output;
 	}
+	
 	
 	
 	

@@ -214,11 +214,32 @@ public class MainClient extends JFrame{
 		
         if (returnValue == JFileChooser.APPROVE_OPTION) {
         	File selectedFile = jc.getSelectedFile();
-        			
-        	Message message = new Message(Message.TYPE_FILE, new Date(), clientThread.getClient(), selectedFile);
-        	clientThread.getMessageManager().sendMessage(message);
-        	clientThread.sendFile(selectedFile);
-        	//TODO
+        	
+        	int selectedUsers[] = jtTableUsers.getSelectedRows();
+			boolean himself = false;
+			
+			if(selectedUsers.length == 1) {
+				for(int j :selectedUsers) {
+					if(connectedClients.get(j).getId() == clientThread.getClient().getId()) {
+						himself = true;
+						break;
+					}
+				}
+			}
+			
+			if(himself || selectedUsers.length == 0 || selectedUsers.length == dtmUsers.getRowCount()) {
+				clientThread.sendFile(selectedFile, null);
+			}
+			else {
+				for(int j :selectedUsers) {
+					if(connectedClients.get(j).getId() != clientThread.getClient().getId()) {
+						clientThread.sendFile(selectedFile, connectedClients.get(j));
+					}
+				}
+				
+				jtfMessageBox.setText("");
+			}
+			
         }
 	}
 	
@@ -274,9 +295,12 @@ public class MainClient extends JFrame{
 		
 	}
 	
+	public static void initProgram() {
+		new MainClient().setVisible(true); 
+	}
+	
 	public static void main(String[] args) {
-		MainClient main = new MainClient(); 
-		main.setVisible(true);
+		initProgram();
 	}
 
 }

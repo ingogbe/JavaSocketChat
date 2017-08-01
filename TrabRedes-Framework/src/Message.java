@@ -13,8 +13,12 @@ public class Message implements Serializable{
 	public static final int TYPE_UPDATECLIENT = 3;
 	public static final int TYPE_UPDATEUSERS = 4;
 	
+	public static final int TYPE_FILE_SEND = 1;
+	public static final int TYPE_FILE_RECEIVE = 2;
+	
 	private String message;
 	private int type;
+	private int type_file;
 	private Date senderDate;
 	private Date serverDate;
 	private File file;
@@ -43,6 +47,7 @@ public class Message implements Serializable{
 		this.update = update;
 		this.users = new ArrayList<Client>();
 		this.file = null;
+		this.type_file = 0;
 	}
 	
 	public Message(ArrayList<Client> users, int type) {
@@ -56,6 +61,7 @@ public class Message implements Serializable{
 		this.update = null;
 		this.users = users;
 		this.file = null;
+		this.type_file = 0;
 	}
 	
 	public Message(String message, int type, Date serverDate) {
@@ -69,6 +75,7 @@ public class Message implements Serializable{
 		this.update = null;
 		this.users = new ArrayList<Client>();
 		this.file = null;
+		this.type_file = 0;
 	}
 	
 	public Message(String message, int type, Date senderDate, Client sender) {
@@ -82,6 +89,7 @@ public class Message implements Serializable{
 		this.update = null;
 		this.users = new ArrayList<Client>();
 		this.file = null;
+		this.type_file = 0;
 	}
 	
 	public Message(String message, int type, Date senderDate, Client sender, Client receiver) {
@@ -95,9 +103,10 @@ public class Message implements Serializable{
 		this.update = null;
 		this.users = new ArrayList<Client>();
 		this.file = null;
+		this.type_file = 0;
 	}
 	
-	public Message(int type, Date senderDate, Client sender, File file) {
+	public Message(int type, Date senderDate, Client sender, File file, int type_file) {
 		super();
 		this.message = "";
 		this.type = type;
@@ -108,9 +117,10 @@ public class Message implements Serializable{
 		this.update = null;
 		this.users = new ArrayList<Client>();
 		this.file = file;
+		this.type_file = type_file;
 	}
 	
-	public Message(int type, Date senderDate, Client sender, Client receiver, File file) {
+	public Message(int type, Date senderDate, Client sender, Client receiver, File file, int type_file) {
 		super();
 		this.message = "";
 		this.type = type;
@@ -121,6 +131,7 @@ public class Message implements Serializable{
 		this.update = null;
 		this.users = new ArrayList<Client>();
 		this.file = file;
+		this.type_file = type_file;
 	}
 
 	public ArrayList<Client> getUsers() {
@@ -206,6 +217,14 @@ public class Message implements Serializable{
 
 	public void setFile(File file) {
 		this.file = file;
+	}
+
+	public int getType_file() {
+		return type_file;
+	}
+
+	public void setType_file(int type_file) {
+		this.type_file = type_file;
 	}
 	
 	

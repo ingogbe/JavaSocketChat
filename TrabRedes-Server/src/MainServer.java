@@ -119,7 +119,7 @@ public class MainServer extends JFrame{
 		return id;
 	}
 	
-	public static void main(String[] x) {
+	public static void initProgram() {
 		new MainServer().setVisible(true);
 		
 		new Thread(new Runnable() {
@@ -152,6 +152,7 @@ public class MainServer extends JFrame{
 					
 					while(true) {
 			        	Socket socket = fileServer.accept();
+			        	new ServerFileThread(socket);
 			        } 
 					
 				} catch(Exception e) {
@@ -160,6 +161,10 @@ public class MainServer extends JFrame{
 				}
 			}
 		}).start();
+	}
+	
+	public static void main(String[] x) {
+		initProgram();
 	}
 
 	public static ArrayList<ServerMessageThread> getConnectedMessageThreads() {
@@ -178,7 +183,7 @@ public class MainServer extends JFrame{
 		MainServer.messageServer = servidor;
 	}
 
-
+	
 
 	
 	

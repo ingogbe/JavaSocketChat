@@ -188,9 +188,9 @@ public class ClientMessageThread extends Thread{
 	}
 	
 	public void sendFile(File myFile) {
-		//TODO: Quando cliente manda arquivo
 		//Conecta no server de files
 		//Envia arquivo X
+		
 		
 		try {
 			setFileSocket(new Socket(hostAdress, ServerConsts.FILE_PORT));

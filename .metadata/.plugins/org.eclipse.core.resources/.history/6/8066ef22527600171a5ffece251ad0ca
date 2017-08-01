@@ -119,9 +119,7 @@ public class ClientMessageThread extends Thread{
 			
 		}
 		else if(message.getType() == Message.TYPE_FILE){
-			//TODO Quando cliente recebe arquivo
-			//Conecta no socket de files
-			//Baixa o arquivo X
+			
 		}
 		
 		return message;
@@ -188,17 +186,15 @@ public class ClientMessageThread extends Thread{
 	}
 	
 	public void sendFile(File myFile) {
-		//TODO: Quando cliente manda arquivo
-		//Conecta no server de files
-		//Envia arquivo X
-		
 		try {
 			setFileSocket(new Socket(hostAdress, ServerConsts.FILE_PORT));
 			setFileManager(new FileManager(getFileSocket().getInputStream(), getFileSocket().getOutputStream()));
 			getFileManager().sendFile(getFileSocket(), myFile);
 		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

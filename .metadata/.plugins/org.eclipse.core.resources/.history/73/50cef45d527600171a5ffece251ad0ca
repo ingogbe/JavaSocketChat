@@ -192,6 +192,7 @@ public class ClientMessageThread extends Thread{
 		//Conecta no server de files
 		//Envia arquivo X
 		
+		
 		try {
 			setFileSocket(new Socket(hostAdress, ServerConsts.FILE_PORT));
 			setFileManager(new FileManager(getFileSocket().getInputStream(), getFileSocket().getOutputStream()));

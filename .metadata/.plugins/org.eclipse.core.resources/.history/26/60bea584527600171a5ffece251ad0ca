@@ -122,7 +122,6 @@ public class ServerMessageThread extends Thread{
 			}
 			else if(message.getType() == Message.TYPE_FILE) {
 				//TODO pega accept do servidor de files e recebe o arquivo X
-				//Renvia mensagem de arquivo para os destinatarios
 				
 				
 				

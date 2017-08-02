@@ -63,7 +63,7 @@ public class ServerMessageThread extends Thread{
 					
 					Message msgConnect = new Message("Client connected (" + getClient().getName() + "). ID: " + getClient().getId() + "!", Message.TYPE_PLAINTEXT, new Date());
 					MainServer.jtaChat.append("[" + msgConnect.getFormattedServerDate() + "] " + msgConnect.getMessage() + "!\n");
-					MainServer.messageHistoric.add(msgConnect);
+					//MainServer.messageHistoric.add(msgConnect);
 					
 					ArrayList<Client> clients = new ArrayList<Client>();
 					for(ServerMessageThread tc: MainServer.getConnectedMessageThreads()) {
@@ -144,7 +144,7 @@ public class ServerMessageThread extends Thread{
 		MainServer.getConnectedMessageThreads().remove(this);
 		Message msg = new Message("Client " + getClient().getName() + " [ID:" + getClient().getId() + "] disconnected!", Message.TYPE_PLAINTEXT, new Date());
 		MainServer.jtaChat.append("[" + msg.getFormattedServerDate() + "] " + msg.getMessage() + "!\n");
-		MainServer.messageHistoric.add(msg);
+		//MainServer.messageHistoric.add(msg);
 		
 		ArrayList<Client> clients = new ArrayList<Client>();
 		for(ServerMessageThread tc: MainServer.getConnectedMessageThreads()) {

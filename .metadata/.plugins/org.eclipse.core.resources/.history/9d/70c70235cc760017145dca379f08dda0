@@ -1,0 +1,192 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+
+public class FileManager {
+	public final static int FILE_SIZE = 6022386; // file size temporary hard coded should bigger than the file to be downloaded
+	public final static int TYPE_RECEIVE = 1;
+	public final static int TYPE_SEND = 2;
+	
+	private int type;
+	
+	private InputStream input;
+	private OutputStream output;
+	private BufferedInputStream bis;
+	private BufferedOutputStream bos;
+	
+	public FileManager(InputStream is, OutputStream os){
+		this.type = 0;
+		
+		this.input = is;
+		this.output = os;
+		this.bis = null;
+		this.bos = null;
+	}
+	
+	public void sendConfig(Message message) {
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(getOutput());
+			oos.flush();
+			oos.writeObject(message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public Message readConfig() {
+		
+		Message message = null;
+		
+		try {
+			ObjectInputStream ois = new ObjectInputStream(getInput());
+			message = (Message) ois.readObject();
+			
+			return message;
+			
+		} catch (IOException | ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	public void sendFile(File file) throws IOException{
+		
+		System.out.println("Waiting...");
+		byte [] mybytearray  = new byte [(int)file.length()];
+		FileInputStream fis = new FileInputStream(file);
+        bis = new BufferedInputStream(fis);
+        bis.read(mybytearray,0,mybytearray.length);
+        System.out.println("Sending " + file.getAbsolutePath() + "(" + mybytearray.length + " bytes)");
+        getOutput().flush();
+        getOutput().write(mybytearray,0,mybytearray.length);
+        getOutput().flush();
+        System.out.println("Done.");
+		
+		/*
+		
+		FileInputStream fis = new FileInputStream(myFile);
+        BufferedInputStream bis = new BufferedInputStream(fis);
+		
+		try {
+			byte [] mybytearray  = new byte [(int) myFile.length()];
+	        
+			bis.read(mybytearray,0,mybytearray.length);
+	        System.out.println("Sending " + myFile.getAbsolutePath() + "(" + mybytearray.length + " bytes)");
+	        
+	        this.getOutput().write(mybytearray,0,mybytearray.length);
+	        this.getOutput().flush();
+		} 
+		finally {
+			if (fis != null) fis.close();
+			if (bis != null) bis.close();
+		}
+        */
+	}
+	
+	public void receiveFile(String receiveFilepath) throws IOException{
+		
+	    System.out.println("Connecting...");
+		
+		// receive file
+		byte [] mybytearray  = new byte [FILE_SIZE];
+		FileOutputStream fos = new FileOutputStream(receiveFilepath);
+		bos = new BufferedOutputStream(fos);
+		int bytesRead = getInput().read(mybytearray,0,mybytearray.length);
+		int current = bytesRead;
+	
+		do {
+			bytesRead = getInput().read(mybytearray, current, (mybytearray.length-current));
+			if(bytesRead >= 0)
+				current += bytesRead;
+		} while(bytesRead > -1);
+	
+		bos.write(mybytearray, 0 , current);
+		bos.flush();
+		System.out.println("File " + receiveFilepath + " downloaded (" + current + " bytes read)");
+		
+		/*
+		byte [] mybytearray  = new byte [FILE_SIZE];
+		
+		FileOutputStream fos = new FileOutputStream(receiveFilepath);
+		BufferedOutputStream bos = new BufferedOutputStream(fos);
+		
+		int bytesRead = getInput().read(mybytearray,0,mybytearray.length);
+		
+		int current = bytesRead;
+		
+		try{
+			do {
+				bytesRead = getInput().read(mybytearray, current, (mybytearray.length-current));
+				
+				if(bytesRead >= 0) {
+					current += bytesRead;
+				}
+			} while(bytesRead > -1);
+			
+			bos.write(mybytearray, 0 , current);
+			bos.flush();
+		}
+		finally {
+			if (fos != null) fos.close();
+			if (bos != null) bos.close();
+			
+			System.out.println("File " + receiveFilepath + " downloaded (" + current + " bytes read)");
+		}
+		*/
+		
+	}
+	
+	public String getFileExtension(File file) {
+	    String name = file.getName();
+	    try {
+	        return name.substring(name.lastIndexOf(".") + 1);
+	    } catch (Exception e) {
+	        return "";
+	    }
+	}
+	
+	public void close() {
+		try {
+			getInput().close();
+			getOutput().close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public int getType() {
+		return type;
+	}
+
+	public void setType(int type) {
+		this.type = type;
+	}
+
+	public InputStream getInput() {
+		return input;
+	}
+
+	public void setInput(InputStream input) {
+		this.input = input;
+	}
+
+	public OutputStream getOutput() {
+		return output;
+	}
+
+	public void setOutput(OutputStream output) {
+		this.output = output;
+	}
+	
+	
+	
+	
+}

@@ -10,7 +10,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
 public class FileManager {
-	public final static int FILE_SIZE = 6022386; // file size temporary hard coded should bigger than the file to be downloaded
+	public final static int FILE_SIZE = 10000000; // Em bytes. Limite do tamanho de arquivo (10 MB)
 	public final static int TYPE_RECEIVE = 1;
 	public final static int TYPE_SEND = 2;
 	
@@ -66,30 +66,10 @@ public class FileManager {
         bis.read(mybytearray,0,mybytearray.length);
         System.out.println("Sending " + file.getAbsolutePath() + "(" + mybytearray.length + " bytes)");
         getOutput().flush();
-        System.out.println("Send (antes do write): " + mybytearray.length );
         getOutput().write(mybytearray,0,mybytearray.length);
         getOutput().flush();
         System.out.println("Done.");
-		
-		/*
-		
-		FileInputStream fis = new FileInputStream(myFile);
-        BufferedInputStream bis = new BufferedInputStream(fis);
-		
-		try {
-			byte [] mybytearray  = new byte [(int) myFile.length()];
-	        
-			bis.read(mybytearray,0,mybytearray.length);
-	        System.out.println("Sending " + myFile.getAbsolutePath() + "(" + mybytearray.length + " bytes)");
-	        
-	        this.getOutput().write(mybytearray,0,mybytearray.length);
-	        this.getOutput().flush();
-		} 
-		finally {
-			if (fis != null) fis.close();
-			if (bis != null) bis.close();
-		}
-        */
+	
 	}
 	
 	public void receiveFile(String receiveFilepath) throws IOException{
@@ -98,7 +78,6 @@ public class FileManager {
 	    int bytesRead;
 	    int current = 0;
 		
-	    
 		// receive file
 		byte [] mybytearray  = new byte [FILE_SIZE];
 		FileOutputStream fos = new FileOutputStream(receiveFilepath);
@@ -108,51 +87,17 @@ public class FileManager {
 		bytesRead = getInput().read(mybytearray,0,mybytearray.length);
 		
 		current = bytesRead;
-		System.out.println("Receive Antes: " + current);
 	
 		do {
 			bytesRead = getInput().read(mybytearray, current, (mybytearray.length-current));
 			if(bytesRead >= 0)
 				current += bytesRead;
 		} while(bytesRead > -1);
-		
-		
-		System.out.println("Receive Depois: " + current);
-		
+
 		bos.flush();
 		bos.write(mybytearray, 0 , current);
 		bos.flush();
 		System.out.println("File " + receiveFilepath + " downloaded (" + current + " bytes read)");
-		
-		/*
-		byte [] mybytearray  = new byte [FILE_SIZE];
-		
-		FileOutputStream fos = new FileOutputStream(receiveFilepath);
-		BufferedOutputStream bos = new BufferedOutputStream(fos);
-		
-		int bytesRead = getInput().read(mybytearray,0,mybytearray.length);
-		
-		int current = bytesRead;
-		
-		try{
-			do {
-				bytesRead = getInput().read(mybytearray, current, (mybytearray.length-current));
-				
-				if(bytesRead >= 0) {
-					current += bytesRead;
-				}
-			} while(bytesRead > -1);
-			
-			bos.write(mybytearray, 0 , current);
-			bos.flush();
-		}
-		finally {
-			if (fos != null) fos.close();
-			if (bos != null) bos.close();
-			
-			System.out.println("File " + receiveFilepath + " downloaded (" + current + " bytes read)");
-		}
-		*/
 		
 	}
 	

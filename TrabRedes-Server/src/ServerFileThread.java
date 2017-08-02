@@ -76,8 +76,6 @@ public class ServerFileThread extends Thread{
 					System.out.println("Recebeu cliente: " + getClient().getName() + " ID = " + getClient().getId());
 				}
 				
-				System.out.println("FILE RECEIVE: " + m.getFile());
-				
 				//getFileManager().sendConfig(m);
 	    		getFileManager().sendFile(m.getFile());
 				

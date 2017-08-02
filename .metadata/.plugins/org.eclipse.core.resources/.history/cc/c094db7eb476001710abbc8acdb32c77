@@ -1,0 +1,7 @@
+
+public class Main {
+	public static void main(String[] x) {
+		new MainServer().initProgram();
+		new MainClient().initProgram();
+	}
+}

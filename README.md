@@ -15,7 +15,7 @@ Trabalho de Redes usando ServerSocket em Java
 É necessário fazer alteração na constante `SERVER_STORAGE` no arquivo `MainServer.java` no projeto `TrabRedes-Server`, para o local onde deseja que o servidor utilize par armazenar os arquivos.
 
 ```sh
-\trabalhoredes\TrabRedes-Server\src\MainServer.java
+/trabalhoredes/TrabRedes-Server/src/MainServer.java
 ```
 
 ```java
@@ -47,6 +47,6 @@ public static final String SERVER_STORAGE = "C:/Users/Mineradora03/Desktop/serve
 
 ### Uso
 
-* Inicie primeiro o Server (MainServer.java)
-* Inicie quantos Clientes desejar (MainClient.java)
+* Inicie primeiro o Server (`MainServer.java`)
+* Inicie quantos Clientes desejar (`MainClient.java`)
 * Para conectar ao servidor usando o Cliente, insera o IP mostrado na tela do Servidor no campo IP do Cliente.

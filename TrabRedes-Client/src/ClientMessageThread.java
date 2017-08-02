@@ -36,9 +36,13 @@ public class ClientMessageThread extends Thread{
 	}
 	
 	public void run() {
+		//Ao iniciar a thread do client ele já envia os dados do cliente para o servidor através
+		//de uma mensagem do tipo updateClient que será retornada pelo servidor com o objeto client
+		//completo já com o ID
 		Message msg = new Message(getClient(), Message.TYPE_UPDATECLIENT);
 		getMessageManager().sendMessage(msg);
 		
+		//Enquanto o cliente está rodando fica lendo as mensagens que recebe
 		while(isRunning()) {
 			if(!getMessageSocket().isClosed()) {
 				Message message = readMessage();
@@ -60,15 +64,20 @@ public class ClientMessageThread extends Thread{
 			ObjectOutputStream oos = new ObjectOutputStream(getMessageSocket().getOutputStream());
 			setMessageManager(new MessageManager(ois, oos));
 			
+			//Muda o status para rodando = true
 			setRunning(true);
 			
+			//Bloqueio os campos de texto e muda texto do botão de "Connect" para "Disconnect"
 			MainClient.jtaChat.setText("");
 			MainClient.jtfIp.setEditable(false);
 			MainClient.jtfName.setEditable(false);
 			MainClient.jbConnect.setText("Disconnect");
 			
+			//Inicia a thread do client
 			this.start();
 		} catch(ConnectException e) {
+			//Se der algum erro de conexão, habilita campos, mostra mensagem de erro ao usuario
+			//e muda o texto do botão para "Connect" novamente
 			setRunning(false);
 			
 			MainClient.jtaChat.setText(e.getMessage());
@@ -83,7 +92,9 @@ public class ClientMessageThread extends Thread{
 	}
 	
 	public void disconnect() {
+		//Muda o status para rodando = false
 		setRunning(false);
+		//Remove todos os usuários da lista de logados
 		MainClient.removeUserRows();
 		
 		try {
@@ -91,6 +102,7 @@ public class ClientMessageThread extends Thread{
 			getMessageManager().close();
 			getMessageSocket().close();
 			
+			//Limpa area de mensagens e escreve "Disconnected"
 			MainClient.jtaChat.setText("");
 			MainClient.jtaChat.append("SERVER [" + new Date() +"] => Disconnected\n");
 		} catch (IOException e) {
@@ -101,17 +113,26 @@ public class ClientMessageThread extends Thread{
 	public Message readMessage() {
 		Message message = null;
 	
+		//Le mensagem recebida do servidor
 		message = getMessageManager().readMessage();
 		
+		//Se mensagem for nula, não faça nada
 		if(message == null) {
-			//Do nothing
+			System.out.println("Mensagem nula recebida");
 		}
+		//Se a mensagem for do tipo TYPE_UPDATECLIENT, sabe-se que o atributo 'update' estará populado
+		//então atualiza o objeto client com o dado do atributo 'update'
 		else if(message.getType() == Message.TYPE_UPDATECLIENT) {
 			setClient(message.getUpdate());
 		}
+		//Se a mensagem for do tipo TYPE_UPDATEUSERS, sabe-se que o atributo 'users' estará populado
+		//então pega esse array de usuários e atuliza a lista de pessoas logadas
 		else if(message.getType() == Message.TYPE_UPDATEUSERS) {
 			MainClient.updateUserTable(message.getUsers());
 		}
+		//Se a mensagem for do tipo TYPE_PLAINTEXT, o client recebeu uma mensagem de texto que contem diversas
+		//informações. Destinatário (Receiver) ou não, data do servidor (ServerDate), data do remetente (SenderDate),
+		//dados de quem enviou (Sender), a uma string com a mensagem em si (Message)
 		else if(message.getType() == Message.TYPE_PLAINTEXT){
 			if(message.hasReceiver()) {
 				MainClient.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") TO " + message.getReceiver().getName() + "(ID: " + message.getReceiver().getId() + ") >> " + message.getMessage() + "\n");
@@ -125,11 +146,7 @@ public class ClientMessageThread extends Thread{
 			
 		}
 		else if(message.getType() == Message.TYPE_FILE){
-			//TODO Quando cliente recebe arquivo
-			//Conecta no socket de files
-			//Baixa o arquivo X
-			
-			//Recebe mensagem falando que tem arquivo
+			//Recebe mensagem falando que tem arquivo e mostra mensagem na tela de mensagens
 			if(message.hasReceiver()) {
 				MainClient.jtaChat.append("["+ message.getFormattedServerDate() + "] " + message.getSender().getName() + "(ID: " + message.getSender().getId() + ") TO " + message.getReceiver().getName() + "(ID: " + message.getReceiver().getId() + ") >> Send a file: '" + message.getFile().getName() + "'\n");
 			}
@@ -140,8 +157,7 @@ public class ClientMessageThread extends Thread{
 				MainClient.jtaChat.append("SERVER ["+ message.getFormattedServerDate() +"] => Send a file: '" + message.getFile().getName() + "'\n");
 			}
 			
-			//Deseja baixar??
-			//Se sim manda mensagem abaixo
+			//Ao receber mensagem com arquivo aciona o metodo para receber o arquivo, caso não for a propria pessoa que enviou
 			if(message.getSender().getId() != getClient().getId())
 				receiveFile(message);
 			
@@ -150,16 +166,88 @@ public class ClientMessageThread extends Thread{
 		return message;
 	}
 	
-	public boolean isSocketClosed() {
-		if(getMessageSocket() == null || getMessageSocket().isClosed()) {
-			return true;
+	//Envia arquivo para o servidor que então fara o encaminhamento para o destinatario
+	public void sendFile(File file, Client receiver) {
+		try {       
+			Message message;
+			
+			//Cria mensagem de configuração para enviar ao servidor de arquivos, contendo os dados do arquivo (objeto File)
+			if(receiver == null) {
+				message = new Message(Message.TYPE_FILE, new Date(), getClient(), file, Message.TYPE_FILE_SEND);
+			}
+			else {
+				message = new Message(Message.TYPE_FILE, new Date(), getClient(), receiver, file, Message.TYPE_FILE_SEND);
+			}
+			
+			//Conecta ao servidor de mensagens 
+        	setFileSocket(new Socket(hostAdress, ServerConsts.FILE_PORT));
+    		InputStream is = getFileSocket().getInputStream();
+    		OutputStream os = getFileSocket().getOutputStream();
+    		setFileManager(new FileManager(is,os));
+    		
+    		//Envia mensagem de configuração que o server de arquivos está esperando
+    		//E em seguida envia o arquivo
+    		getFileManager().sendConfig(message);
+    		getFileManager().sendFile(file);
+    		
+    		//Fecha ligações com o server de arquivos
+			getFileManager().close();
+			getFileSocket().close();
+			
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		else if(getFileSocket() == null || getFileSocket().isClosed()) {
-			return true;
+		
+	}
+	
+	public void receiveFile(Message m) {
+		
+		try {
+			//Conecta ao servidor de mensagens 
+        	setFileSocket(new Socket(hostAdress, ServerConsts.FILE_PORT));
+    		InputStream is = getFileSocket().getInputStream();
+    		OutputStream os = getFileSocket().getOutputStream();
+    		setFileManager(new FileManager(is,os));
+    		
+    		//Abre chooser para escolher onde será salvo o arquivo que recebeu
+    		JFileChooser jc = new JFileChooser();
+    		FileNameExtensionFilter filter = new FileNameExtensionFilter("Received File", getFileManager().getFileExtension(m.getFile()));
+    		System.out.println(getFileManager().getFileExtension(m.getFile()));
+    		jc.setFileFilter(filter);
+    		jc.setSelectedFile(new File(m.getFile().getName()));
+    		jc.setAcceptAllFileFilterUsed(false);
+        	
+        	int returnValue = jc.showSaveDialog(null);
+    		
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+            	File f = jc.getSelectedFile();
+            	
+            	//Compara a extensão do arquivo escrito ou selecionado com o do arquivo da mensagem
+            	//Se forem igual salva o arquivo
+            	//Por padrão o filechooser já vem com o nome do arquivo populado
+            	if(getFileManager().getFileExtension(f).equals(getFileManager().getFileExtension(m.getFile()))) {
+            		
+            		System.out.println(m.getFile());
+            		
+            		//Envia mensagem de configuração que o server de arquivos está esperando
+            		//E em seguida recebe o arquivo
+            		getFileManager().sendConfig(m);
+            		getFileManager().receiveFile(f.getAbsolutePath());
+            	}
+            }
+    		
+    		//Fecha ligações com o server de arquivos
+			getFileManager().close();
+			getFileSocket().close();
+			
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		else {
-			return false;
-		}
+		
 	}
 
 	public Client getClient() {
@@ -209,89 +297,6 @@ public class ClientMessageThread extends Thread{
 	public void setFileSocket(Socket fileSocket) {
 		this.fileSocket = fileSocket;
 	}
-	
-	public void sendFile(File file, Client receiver) {
-		//TODO:
-		
-		try {       
-			
-			Message message;
-			
-			if(receiver == null) {
-				message = new Message(Message.TYPE_FILE, new Date(), getClient(), file, Message.TYPE_FILE_SEND);
-			}
-			else {
-				message = new Message(Message.TYPE_FILE, new Date(), getClient(), receiver, file, Message.TYPE_FILE_SEND);
-			}
-			
-        	setFileSocket(new Socket(hostAdress, ServerConsts.FILE_PORT));
-    		InputStream is = getFileSocket().getInputStream();
-    		OutputStream os = getFileSocket().getOutputStream();
-    		setFileManager(new FileManager(is,os));
-    		
-    		getFileManager().sendConfig(message);
-    		getFileManager().sendFile(file);
-    		
-    		//Fecha ligações com o server de arquivos
-			getFileManager().close();
-			getFileSocket().close();
-			
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-	}
-	
-	public void receiveFile(Message m) {
-		//TODO:
-		
-		try {
-        	setFileSocket(new Socket(hostAdress, ServerConsts.FILE_PORT));
-    		InputStream is = getFileSocket().getInputStream();
-    		OutputStream os = getFileSocket().getOutputStream();
-    		setFileManager(new FileManager(is,os));
-    		
-    		JFileChooser jc = new JFileChooser();
-    		FileNameExtensionFilter filter = new FileNameExtensionFilter("Received File", getFileManager().getFileExtension(m.getFile()));
-    		System.out.println(getFileManager().getFileExtension(m.getFile()));
-    		jc.setFileFilter(filter);
-    		jc.setSelectedFile(new File(m.getFile().getName()));
-    		jc.setAcceptAllFileFilterUsed(false);
-        	
-        	int returnValue = jc.showSaveDialog(null);
-    		
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-            	File f = jc.getSelectedFile();
-            	
-            	if(getFileManager().getFileExtension(f).equals(getFileManager().getFileExtension(m.getFile()))) {
-            		
-            		System.out.println(m.getFile());
-            		
-            		getFileManager().sendConfig(m);
-            		getFileManager().receiveFile(f.getAbsolutePath());
-            	}
-            	
-            	//TODO
-            }
-    		
-    		//Fecha ligações com o server de arquivos
-			getFileManager().close();
-			getFileSocket().close();
-			
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-	}
-	
-
-
-	
-	
 	
 
 }

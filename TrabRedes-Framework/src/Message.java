@@ -28,14 +28,7 @@ public class Message implements Serializable{
 	private Client update;
 	private ArrayList<Client> users;
 	
-	//TODO: Fazer mandar arquivo arquivo
-	
-	/*
-	 * Se não possui sender a mensagem veio do servidor.
-	 * Se não possui receiver a mensagem é para todos.
-	 * 
-	 */
-	
+	//Construtor para atualização de usuario
 	public Message(Client update, int type) {
 		super();
 		this.message = "";
@@ -50,6 +43,7 @@ public class Message implements Serializable{
 		this.type_file = 0;
 	}
 	
+	//Construtor para atualização de lista de usuarios logados
 	public Message(ArrayList<Client> users, int type) {
 		super();
 		this.message = "";
@@ -64,6 +58,7 @@ public class Message implements Serializable{
 		this.type_file = 0;
 	}
 	
+	//Construtor para mensagens do servidos (ex: usuario X conectado)
 	public Message(String message, int type, Date serverDate) {
 		super();
 		this.message = message;
@@ -78,6 +73,7 @@ public class Message implements Serializable{
 		this.type_file = 0;
 	}
 	
+	//Construtor para mensagem simples do remetente para todos
 	public Message(String message, int type, Date senderDate, Client sender) {
 		super();
 		this.message = message;
@@ -92,6 +88,7 @@ public class Message implements Serializable{
 		this.type_file = 0;
 	}
 	
+	//Construtor para mensagem simples do remetente para destinatario especifico
 	public Message(String message, int type, Date senderDate, Client sender, Client receiver) {
 		super();
 		this.message = message;
@@ -106,6 +103,7 @@ public class Message implements Serializable{
 		this.type_file = 0;
 	}
 	
+	//Construtor de mensagem de configuração para envio de arquivo para todos
 	public Message(int type, Date senderDate, Client sender, File file, int type_file) {
 		super();
 		this.message = "";
@@ -120,6 +118,7 @@ public class Message implements Serializable{
 		this.type_file = type_file;
 	}
 	
+	//Construtor de mensagem de configuração para envio de arquivo para destinatario especifico
 	public Message(int type, Date senderDate, Client sender, Client receiver, File file, int type_file) {
 		super();
 		this.message = "";
@@ -170,6 +169,7 @@ public class Message implements Serializable{
 		return serverDate;
 	}
 	
+	//Formata data pro formatado que quero (dd-MM-yyyy HH:mm:ss)
 	public String getFormattedServerDate() {
 		String str = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(this.getServerDate());
 		return str;

@@ -4,6 +4,7 @@ public class Client implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	
+	//Classe do cliente, contento nome e id unica dada pelo servidor
 	private String name;
 	private int id;
 	

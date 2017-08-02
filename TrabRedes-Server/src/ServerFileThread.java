@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Date;
 
 public class ServerFileThread extends Thread{
@@ -9,7 +8,6 @@ public class ServerFileThread extends Thread{
 	private Client client;
 	private Socket fileSocket;
 	private FileManager fileManager;
-	ArrayList<File> filesToDownload;
 	
 	public static final String SERVER_STORAGE = "C:/Users/Mineradora03/Desktop/serverStorage/";
 	
@@ -18,34 +16,39 @@ public class ServerFileThread extends Thread{
 		this.fileSocket = fileSocket;
 		this.client = new Client();
 		this.fileManager = null;
-		this.filesToDownload = new ArrayList<File>();
 		
 		this.start();
 	}
 	
 	public void run() {
 		try {
+			//Inicia gerenciador de arquivos
 			setFileManager(new FileManager(getFileSocket().getInputStream(), getFileSocket().getOutputStream()));
+			//Recebe mensagem de configuração com dados do arquivo
 			Message m = getFileManager().readConfig();
 			m.setServerDate(new Date());
 			
+			//Se for o servidor receber um arquivo de um client
 			if(Message.TYPE_FILE_SEND == m.getType_file()) {
+				//Atualiza client da thread
 				setClient(m.getSender());
 				
 				if(getClient() == null) {
-					System.out.println("DEU PAU");
-					//TODO: Para tudo, deu pau
+					System.out.println("Erro ao receber arquivo no servidor");
 				}
 				else {
 					System.out.println("Recebeu cliente: " + getClient().getName() + " ID = " + getClient().getId());
 				}
 				
+				//Recebe arquivo no caminho e nome especificado
 				getFileManager().receiveFile(SERVER_STORAGE + getClient().getId() + "_" + m.getFile().getName());
 				
-				
+				//Altera tipo da mensagem antes de encaminhar para cliente destinatario
+				//Mensagem alertado que há um arquivo recebido a ser baixado
 				m.setType_file(Message.TYPE_FILE_RECEIVE);
 				m.setFile(new File(SERVER_STORAGE + getClient().getId() + "_" + m.getFile().getName()));
 				
+				//Se houver destinatario, envia para o mesmo
 				if(m.hasReceiver()) {
 					MainServer.jtaChat.append("["+ m.getFormattedServerDate() + "] " + m.getSender().getName() + "(ID: " + m.getSender().getId() + ") TO " + m.getReceiver().getName() + "(ID: " + m.getReceiver().getId() + ") >> Send a file: '" +m.getFile().getName() + "'\n");
 					
@@ -55,6 +58,7 @@ public class ServerFileThread extends Thread{
 						}
 					}
 				}
+				//Se não houver destinatario, envia para todos
 				else {
 					MainServer.jtaChat.append("["+ m.getFormattedServerDate() + "] " + m.getSender().getName() + "(ID: " + m.getSender().getId() + ") >> Send a file: '" + m.getFile().getName() + "'\n");
 					
@@ -65,22 +69,25 @@ public class ServerFileThread extends Thread{
 				
 				
 			}
+			//Se for para enviar um arquivo a um client
+			//Mensagens desse tipo são a confirmação que o cliente está pronto para receber o arquivo e começa a enviar
 			else if(Message.TYPE_FILE_RECEIVE == m.getType_file()) {
+				//Atualiza client da thread
 				setClient(m.getSender());
 				
 				if(getClient() == null) {
-					System.out.println("DEU PAU");
-					//TODO: Para tudo, deu pau
+					System.out.println("Erro ao enviar arquivo ao cliente");
 				}
 				else {
 					System.out.println("Recebeu cliente: " + getClient().getName() + " ID = " + getClient().getId());
 				}
 				
-				//getFileManager().sendConfig(m);
+				//Envia o arquivo
 	    		getFileManager().sendFile(m.getFile());
 				
 			}
 			
+			//Fecha ligações com o client
 			getFileManager().close();
 			getFileSocket().close();
 			
@@ -111,10 +118,6 @@ public class ServerFileThread extends Thread{
 
 	public void setFileManager(FileManager fileManager) {
 		this.fileManager = fileManager;
-	}
-	
-	public void addFileToDownload(File file) {
-		this.filesToDownload.add(file);
 	}
 	
 	

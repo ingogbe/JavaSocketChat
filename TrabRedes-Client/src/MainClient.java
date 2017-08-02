@@ -207,17 +207,23 @@ public class MainClient extends JFrame{
 		}
 	}
 	
+	/**
+	 * Envia um arquivo qualquer selecionado através do JFileChooser para todos os usuários ou os usuários logados selecionados.
+	 */
 	public void sendActionFile() {
 		
+		//Abre o File Chooser
 		JFileChooser jc = new JFileChooser();
 		int returnValue = jc.showOpenDialog(null);
 		
         if (returnValue == JFileChooser.APPROVE_OPTION) {
         	File selectedFile = jc.getSelectedFile();
         	
+        	//Pega os usuários selecionados na tabela de usuários logados
         	int selectedUsers[] = jtTableUsers.getSelectedRows();
 			boolean himself = false;
 			
+			//Verifica se somente ele mesmo (o client) está selecionado
 			if(selectedUsers.length == 1) {
 				for(int j :selectedUsers) {
 					if(connectedClients.get(j).getId() == clientThread.getClient().getId()) {
@@ -227,10 +233,15 @@ public class MainClient extends JFrame{
 				}
 			}
 			
+			//Caso somente ele mesmo estiver selecionado
+			//Ou nenhum usuário estiver selecionado
+			//Ou todos estiverem selecionados
+			//Envia mensagem a todos
 			if(himself || selectedUsers.length == 0 || selectedUsers.length == dtmUsers.getRowCount()) {
 				clientThread.sendFile(selectedFile, null);
 			}
 			else {
+				//Caso contrário envia a mensagem apenas aos selecionados
 				for(int j :selectedUsers) {
 					if(connectedClients.get(j).getId() != clientThread.getClient().getId()) {
 						clientThread.sendFile(selectedFile, connectedClients.get(j));
@@ -243,11 +254,17 @@ public class MainClient extends JFrame{
         }
 	}
 	
+	/**
+	 * Envia uma mensagem de texto para todos os usuários ou os usuários logados selecionados.
+	 */
 	public void sendAction() {
+		//Verifica se o campo de mensagem não está vazio
 		if(!jtfMessageBox.getText().isEmpty()) {
+			//Pega os usuários selecionados na tabela de usuários logados
 			int selectedUsers[] = jtTableUsers.getSelectedRows();
 			boolean himself = false;
 			
+			//Verifica se somente ele mesmo (o client) está selecionado
 			if(selectedUsers.length == 1) {
 				for(int j :selectedUsers) {
 					if(connectedClients.get(j).getId() == clientThread.getClient().getId()) {
@@ -257,12 +274,17 @@ public class MainClient extends JFrame{
 				}
 			}
 			
+			//Caso somente ele mesmo estiver selecionado
+			//Ou nenhum usuário estiver selecionado
+			//Ou todos estiverem selecionados
+			//Envia mensagem a todos
 			if(himself || selectedUsers.length == 0 || selectedUsers.length == dtmUsers.getRowCount()) {
 				Message msg = new Message(jtfMessageBox.getText(), Message.TYPE_PLAINTEXT, new Date(), clientThread.getClient());
 				clientThread.getMessageManager().sendMessage(msg);
 				jtfMessageBox.setText("");
 			}
 			else {
+				//Caso contrário envia a mensagem apenas aos selecionados
 				for(int j :selectedUsers) {
 					if(connectedClients.get(j).getId() != clientThread.getClient().getId()) {
 						Message msg = new Message(jtfMessageBox.getText(), Message.TYPE_PLAINTEXT, new Date(), clientThread.getClient(), connectedClients.get(j));
@@ -277,6 +299,11 @@ public class MainClient extends JFrame{
 		
 	}
 	
+	/**
+	 * Faz a conexão com o servidor.
+	 * Pega os dados dos campos de textos (ip e name), cria a thread do client e chama o metodo de conexão da mesma.
+	 * Se já houver uma thread, chama a função disconnect() da mesma, e habilita novamente os campos
+	 */
 	public void connectAction() {
 		String ip = jtfIp.getText();
 		String name = jtfName.getText();
@@ -286,6 +313,7 @@ public class MainClient extends JFrame{
 			clientThread.connect();
 		}
 		else {
+			//Libera os campos de texto e muda texto do botão de "Disconnect" para "Connect"
 			clientThread.disconnect();
 			jtfIp.setEditable(true);
 			jtfName.setEditable(true);
@@ -295,12 +323,8 @@ public class MainClient extends JFrame{
 		
 	}
 	
-	public static void initProgram() {
-		new MainClient().setVisible(true); 
-	}
-	
 	public static void main(String[] args) {
-		initProgram();
+		new MainClient().setVisible(true); 
 	}
 
 }

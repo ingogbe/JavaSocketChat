@@ -1,4 +1,5 @@
 /Client.class
-/FileThread.class
-/Message.class
 /FileManager.class
+/Message.class
+/MessageManager.class
+/ServerConsts.class

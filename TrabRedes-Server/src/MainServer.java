@@ -122,6 +122,7 @@ public class MainServer extends JFrame{
 	public static void initProgram() {
 		new MainServer().setVisible(true);
 		
+		//Inicia Thread do servidor de mensagens
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -133,6 +134,7 @@ public class MainServer extends JFrame{
 			        	Socket socket = messageServer.accept();
 			        	
 			        	ServerMessageThread tc = new ServerMessageThread(socket);
+			        	//Salva todos os clients conectados em um array
 			        	connectedMessageThreads.add(tc);
 			        } 
 					
@@ -143,6 +145,7 @@ public class MainServer extends JFrame{
 			}
 		}).start();
 		
+		//Inicia Thread do servidor de arquivos
 		new Thread(new Runnable() {
 			@Override
 			public void run() {

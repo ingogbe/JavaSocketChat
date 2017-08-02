@@ -12,6 +12,7 @@ public class MessageManager {
 		this.objectOutput = oos;
 	}
 	
+	//Função que le uma mensagem atraves do ObjectInputStream do socket
 	public Message readMessage() {
 		Message message = null;
 	
@@ -24,6 +25,8 @@ public class MessageManager {
 		return message;
 	}
 	
+	//Função que envia uma mensage atraves do ObjectOutputStream do socket
+	//Para enviar um objecto ele tem de ter implementado o Serializable
 	public void sendMessage(Message message) {
 		try {
 			getObjectOutput().flush();
@@ -33,6 +36,7 @@ public class MessageManager {
 		}
 	}
 	
+	//Fecha ligações com o client ou servidor (depende de que lado esta usando, ja que esse objeto server para os dois lados)
 	public void close() {
 		try {
 			getObjectInput().close();

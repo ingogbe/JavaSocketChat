@@ -2,6 +2,8 @@
 
 Trabalho de Redes usando ServerSocket em Java
 
+Chat (Servidor/Cliente)
+
 ### Projetos inclusos no repositório
 
 ```sh

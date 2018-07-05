@@ -9,7 +9,7 @@ public class ServerFileThread extends Thread{
 	private Socket fileSocket;
 	private FileManager fileManager;
 	
-	public static final String SERVER_STORAGE = "C:/Users/Mineradora03/Desktop/serverStorage/";
+	public static final String SERVER_STORAGE = "C:/Users/Celegma/Desktop/serverStorage/";;
 	
 	public ServerFileThread(Socket fileSocket) {
 		super();

@@ -14,14 +14,14 @@ Chat (Servidor/Cliente)
 
 ### Alterações antes do uso
 
-É necessário fazer alteração na constante `SERVER_STORAGE` no arquivo `MainServer.java` no projeto `TrabRedes-Server`, para o local onde deseja que o servidor utilize par armazenar os arquivos.
+É necessário fazer alteração na constante `SERVER_STORAGE` no arquivo `ServerFileThread.java` no projeto `TrabRedes-Server`, para o local onde deseja que o servidor utilize par armazenar os arquivos.
 
 ```sh
-/trabalhoredes/TrabRedes-Server/src/MainServer.java
+/trabalhoredes/TrabRedes-Server/src/ServerFileThread.java
 ```
 
 ```java
-public static final String SERVER_STORAGE = "C:/Users/Mineradora03/Desktop/serverStorage/";
+public static final String SERVER_STORAGE = "C:/Users/SEU_PC/Desktop/serverStorage/";
 ```
 
 ### Configuração antes do uso (Eclipse IDE)

@@ -22,8 +22,6 @@ import javax.swing.text.DefaultCaret;
 public class MainServer extends JFrame{
 	private static final long serialVersionUID = 1L;
 
-	public static final String SERVER_STORAGE = "C:/Users/Mineradora03/Desktop/serverStorage/";
-
 	private static ArrayList<ServerMessageThread> connectedMessageThreads = new ArrayList<ServerMessageThread>();
 	
 	public static ArrayList<Message> messageHistoric = new ArrayList<Message>();
